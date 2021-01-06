@@ -53,8 +53,11 @@ import org.apache.ibatis.type.JdbcType;
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
+  //标记是否解析过mybatis-config.xml文件
   private boolean parsed;
+  //XPath文件解析器
   private final XPathParser parser;
+  //mybatis数据库环境
   private String environment;
   private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 

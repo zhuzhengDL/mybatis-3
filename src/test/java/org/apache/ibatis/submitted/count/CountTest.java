@@ -33,6 +33,7 @@ class CountTest {
 
   @BeforeAll
   static void setUp() throws Exception {
+    //初始化sqlSessionFactory
     try (Reader reader = Resources.getResourceAsReader("org/apache/ibatis/submitted/count/MapperConfig.xml")) {
       sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
     }
@@ -43,6 +44,7 @@ class CountTest {
 
   @Test
   void testCount() {
+    //获取SqlSession
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
       CountMapper mapper = sqlSession.getMapper(CountMapper.class);
       int answer = mapper.count();

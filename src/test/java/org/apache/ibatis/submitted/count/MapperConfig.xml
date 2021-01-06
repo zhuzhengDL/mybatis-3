@@ -21,7 +21,12 @@
     "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
-
+<!--  <typeAliases>
+    <typeAlias type="com.github.dockerjava.api.DockerClient" alias=""/>
+  </typeAliases>-->
+  <!--<typeHandlers>
+    <typeHandler handler="java.lang.Integer" javaType="Integer" jdbcType="int"/>
+  </typeHandlers>-->
   <environments default="development">
     <environment id="development">
       <transactionManager type="JDBC">
@@ -34,9 +39,9 @@
       </dataSource>
     </environment>
   </environments>
-
   <mappers>
     <mapper resource="org/apache/ibatis/submitted/count/Count.xml"/>
   </mappers>
+
 
 </configuration>
