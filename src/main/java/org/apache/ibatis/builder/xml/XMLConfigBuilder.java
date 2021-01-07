@@ -93,12 +93,16 @@ public class XMLConfigBuilder extends BaseBuilder {
     this.environment = environment;
     this.parser = parser;
   }
-
+  /**
+   * 解析的入口，调用了 parseConfiguration() 进行后续的解析
+   */
   public Configuration parse() {
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
+    // parsed标志位 的处理 把解析的标志改成已经解析过
     parsed = true;
+    // 在 mybatis-config.xml配置文件 中查找 <configuration>节点，并开始解析
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
@@ -106,20 +110,36 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
+      //读取配置属性
       propertiesElement(root.evalNode("properties"));
+      //读取基础设置信息
+     /* <settings>
+        <setting name="logImpl" value="SLF4J"/>
+        </settings>
+      */
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       loadCustomVfs(settings);
+      //设置日志打印处理实现类
       loadCustomLogImpl(settings);
+      //解析类别名列表 添加到本地类别名Map
       typeAliasesElement(root.evalNode("typeAliases"));
+      //解析插件标签，反射生成插件实例并添加到本地list
       pluginElement(root.evalNode("plugins"));
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      //读取setting配置信息 设置Configuration配置参数
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      //解析environments 获取数据源配置，  设置数据源到环境中
       environmentsElement(root.evalNode("environments"));
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      //解析typeHandlers 类型处理器  扫描指定的类型handler   javaType 《--》jdbcType 保持到本地Map
       typeHandlerElement(root.evalNode("typeHandlers"));
+      //解析mapper  重点
+       /*<mappers>
+        <mapper resource="org/apache/ibatis/submitted/count/Count.xml"/>
+      </mappers>*/
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -365,14 +385,23 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 处理 <mappers> 的子节点
       for (XNode child : parent.getChildren()) {
+        // 获取 <package>子节点 中的包名
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
+          // 扫描指定的包目录，然后向 MapperRegistry 注册 Mapper接口(扫描注解，创建MappedStatement)
           configuration.addMappers(mapperPackage);
         } else {
+          // 获取 <mapper>节点 的 resource、url、mapperClass属性，这三个属性互斥，只能有一个不为空
+          // Mybatis 提供了通过包名、映射文件路径、类全名、URL 四种方式引入映射器。
+          // 映射器由一个接口和一个 XML配置文件 组成，XML文件 中定义了一个 命名空间namespace，
+          // 它的值就是接口对应的全路径。
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+          // 如果 <mapper>节点 指定了 resource 或是 url属性，则创建 XMLMapperBuilder对象 解析
+          // resource 或是 url属性 指定的 Mapper配置文件
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             try(InputStream inputStream = Resources.getResourceAsStream(resource)) {
@@ -387,6 +416,7 @@ public class XMLConfigBuilder extends BaseBuilder {
             }
           } else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
+            // 如果 <mapper>节点 指定了 class属性，则向 MapperRegistry 注册 该Mapper接口
             configuration.addMapper(mapperInterface);
           } else {
             throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");

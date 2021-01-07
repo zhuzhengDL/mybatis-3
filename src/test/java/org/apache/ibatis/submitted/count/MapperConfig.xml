@@ -21,6 +21,12 @@
     "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
+  <properties>
+    <property name="dd" value="dd"/>
+  </properties>
+  <settings>
+    <setting name="logImpl" value="SLF4J"/>
+  </settings>
 <!--  <typeAliases>
     <typeAlias type="com.github.dockerjava.api.DockerClient" alias=""/>
   </typeAliases>-->
