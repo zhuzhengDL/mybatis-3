@@ -90,15 +90,26 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * 解析mapper 绑定Mapper接口  构建MapperStatement
+   */
   public void parse() {
+    // 是否已经加载过该配置文件
     if (!configuration.isResourceLoaded(resource)) {
+      // 解析 <mapper>节点
       configurationElement(parser.evalNode("/mapper"));
+      // 将 resource 添加到 configuration 的 loadedResources属性 中，
+      // 该属性是一个 HashSet<String>类型的集合，其中记录了已经加载过的映射文件
       configuration.addLoadedResource(resource);
+      // 注册 Mapper接口(同时会扫描Mapper接口的注解)
+      //映射配置文件(Mapper.xml)与对应 Mapper 接口 的绑定
       bindMapperForNamespace();
     }
-
+    // 处理 configurationElement()方法 中解析失败的 <resultMap>节点--删除
     parsePendingResultMaps();
+    // 处理 configurationElement()方法 中解析失败的 <cacheRef>节点-删除
     parsePendingCacheRefs();
+    // 处理 configurationElement()方法 中解析失败的 <statement>节点--删除
     parsePendingStatements();
   }
 
@@ -106,6 +117,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
+  // 解析 <mapper>节点
   private void configurationElement(XNode context) {
     try {
       String namespace = context.getStringAttribute("namespace");
@@ -113,11 +125,17 @@ public class XMLMapperBuilder extends BaseBuilder {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
+      //解析<cache-ref>  二级缓存的依赖解析
       cacheRefElement(context.evalNode("cache-ref"));
+      //解析<cache-ref>  二级缓存的
       cacheElement(context.evalNode("cache"));
+      //解析<parameterMap></parameterMap>
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      //解析<resultMap></resultMap>
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      //解析<sql></sql> 标签
       sqlElement(context.evalNodes("/mapper/sql"));
+      //解析sql语句标签  构建MapperStatement
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -415,20 +433,29 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 映射配置文件(Mapper.xml)与对应 Mapper 接口 的绑定。(同时会扫描Mapper接口的注解)
+   */
   private void bindMapperForNamespace() {
+    // 获取映射配置文件的命名空间
     String namespace = builderAssistant.getCurrentNamespace();
     if (namespace != null) {
       Class<?> boundType = null;
       try {
+        // 解析命名空间对应的类型
         boundType = Resources.classForName(namespace);
       } catch (ClassNotFoundException e) {
         // ignore, bound type is not required
       }
+      // 是否已加载 boundType接口
       if (boundType != null && !configuration.hasMapper(boundType)) {
         // Spring may not know the real resource name so we set a flag
         // to prevent loading again this resource from the mapper interface
         // look at MapperAnnotationBuilder#loadXmlResource
+        // 追加个 "namespace:" 的前缀，并添加到 Configuration 的 loadedResources集合 中
         configuration.addLoadedResource("namespace:" + namespace);
+        // 添加到 Configuration的mapperRegistry集合 中，另外，往这个方法栈的更深处看 会发现
+        // 其创建了 MapperAnnotationBuilder对象，并调用了该对象的 parse()方法 解析 Mapper接口
         configuration.addMapper(boundType);
       }
     }
