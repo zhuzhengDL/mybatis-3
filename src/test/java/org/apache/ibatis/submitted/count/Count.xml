@@ -21,13 +21,13 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.apache.ibatis.submitted.count.CountMapper">
-  <cache></cache>
-  <cache-ref namespace=""></cache-ref>
+ <!-- <cache></cache>
+  <cache-ref namespace=""></cache-ref>-->
   <select id="count" resultType="int">
     select count(*)
     from names
   </select>
-  <resultMap id="dd" type="Integer">
+  <!--<resultMap id="dd" type="Integer">
     <result></result>
-  </resultMap>
+  </resultMap>-->
 </mapper>
