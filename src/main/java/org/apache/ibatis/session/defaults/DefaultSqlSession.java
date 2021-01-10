@@ -145,9 +145,11 @@ public class DefaultSqlSession implements SqlSession {
     return selectList(statement, parameter, rowBounds, Executor.NO_RESULT_HANDLER);
   }
 
+  //查询语句最终会调用到这边selectList
   private <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //通过具体的executor调用执行具体的查询方法
       return executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -186,11 +188,13 @@ public class DefaultSqlSession implements SqlSession {
     return update(statement, null);
   }
 
+  //增删改语句最终会调用到这边update
   @Override
   public int update(String statement, Object parameter) {
     try {
       dirty = true;
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //通过具体的executor调用执行具体的更新方法
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
