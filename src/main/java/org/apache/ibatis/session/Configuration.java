@@ -842,6 +842,7 @@ public class Configuration {
   }
 
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+    //从Configuration维护的mapperegistry对象中获取
     return mapperRegistry.getMapper(type, sqlSession);
   }
 

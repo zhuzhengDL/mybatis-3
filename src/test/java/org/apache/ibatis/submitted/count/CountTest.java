@@ -46,7 +46,9 @@ class CountTest {
   void testCount() {
     //获取SqlSession
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      //获取代理对象
       CountMapper mapper = sqlSession.getMapper(CountMapper.class);
+      //执行代理对象的函数
       int answer = mapper.count();
       assertEquals(6, answer);
     }
