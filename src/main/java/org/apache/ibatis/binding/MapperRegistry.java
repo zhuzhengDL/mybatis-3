@@ -83,6 +83,7 @@ public class MapperRegistry {
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
         // 解析 Mapper接口 type 中的信息  注解扫描的形式
+        //如果同一个方法同时在xml和注解中有配置，则会报错，
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;

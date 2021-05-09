@@ -33,7 +33,7 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  */
 public abstract class BaseBuilder {
   /**
-   * 保存了 Mybatis 的几乎所以核心配置信息，全局唯一
+   * 保存了 Mybatis 的几乎所有核心配置信息，全局唯一
     */
   protected final Configuration configuration;
  /**

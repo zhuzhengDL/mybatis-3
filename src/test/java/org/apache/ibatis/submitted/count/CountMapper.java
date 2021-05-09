@@ -15,6 +15,13 @@
  */
 package org.apache.ibatis.submitted.count;
 
+import org.apache.ibatis.annotations.Select;
+
 public interface CountMapper {
+
   int count();
+
+  @Select(" select count(*)\n" +
+    "    from names where firstName like 'b%'")
+  int count2();
 }

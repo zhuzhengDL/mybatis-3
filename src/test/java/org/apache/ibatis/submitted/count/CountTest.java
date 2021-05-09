@@ -50,7 +50,11 @@ class CountTest {
       CountMapper mapper = sqlSession.getMapper(CountMapper.class);
       //执行代理对象的函数
       int answer = mapper.count();
-      assertEquals(6, answer);
+      //获取代理对象
+      CountMapper mapper2 = sqlSession.getMapper(CountMapper.class);
+      //执行代理对象的函数
+      int answer2 = mapper2.count2();
+      assertEquals(6, answer2);
     }
   }
 }
