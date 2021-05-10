@@ -50,15 +50,27 @@ public class PropertyParser {
     // Prevent Instantiation
   }
 
+  /**
+   * 属性解析 解析配置文件里面${}的变量
+   * @param string
+   * @param variables
+   * @return
+   */
   public static String parse(String string, Properties variables) {
+    // <2.1> 创建 VariableTokenHandler 对象
     VariableTokenHandler handler = new VariableTokenHandler(variables);
+    // <2.2> 创建 GenericTokenParser 对象
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
+    // <2.3> 执行解析
     return parser.parse(string);
   }
 
   private static class VariableTokenHandler implements TokenHandler {
+    //属性变量
     private final Properties variables;
+    //是否启用默认值 默认为 {@link #ENABLE_DEFAULT_VALUE}
     private final boolean enableDefaultValue;
+    //默认属性风隔符 A:B  ：就是分割字符
     private final String defaultValueSeparator;
 
     private VariableTokenHandler(Properties variables) {
@@ -73,8 +85,10 @@ public class PropertyParser {
 
     @Override
     public String handleToken(String content) {
+      //属性变量非空
       if (variables != null) {
         String key = content;
+        //启用默认值
         if (enableDefaultValue) {
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
@@ -82,14 +96,17 @@ public class PropertyParser {
             key = content.substring(0, separatorIndex);
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
+          // 未开启默认值功能，直接替换
           if (defaultValue != null) {
             return variables.getProperty(key, defaultValue);
           }
         }
+        // 未开启默认值功能，直接替换
         if (variables.containsKey(key)) {
           return variables.getProperty(key);
         }
       }
+      // 无 variables ，直接返回
       return "${" + content + "}";
     }
   }
