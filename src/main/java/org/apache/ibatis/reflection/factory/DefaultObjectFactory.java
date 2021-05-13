@@ -40,16 +40,35 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
 
   private static final long serialVersionUID = -8855120656740914948L;
 
+  /**
+   * 使用默认的无参构造函数创建对象
+   * @param type
+   *          Object type
+   * @param <T>
+   * @return
+   */
   @Override
   public <T> T create(Class<T> type) {
     return create(type, null, null);
   }
 
-  @SuppressWarnings("unchecked")
+  /**
+   * 通过构造函数创建对象
+    * @param type
+   *          Object type
+   * @param constructorArgTypes
+   *          Constructor argument types
+   * @param constructorArgs
+   *          Constructor argument values
+   * @param <T>
+   * @return
+   */
   @Override
   public <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
+    // <1> 获得需要创建的类
     Class<?> classToCreate = resolveInterface(type);
     // we know types are assignable
+    // <2> 创建指定类的对象
     return (T) instantiateClass(classToCreate, constructorArgTypes, constructorArgs);
   }
 
@@ -57,6 +76,7 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     try {
       Constructor<T> constructor;
       if (constructorArgTypes == null || constructorArgs == null) {
+        // <x1> 通过无参构造方法，创建指定类的对象
         constructor = type.getDeclaredConstructor();
         try {
           return constructor.newInstance();
@@ -69,6 +89,7 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
           }
         }
       }
+      // <x2> 使用特定构造方法，创建指定类的对象
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[0]));
       try {
         return constructor.newInstance(constructorArgs.toArray(new Object[0]));
@@ -81,23 +102,29 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
         }
       }
     } catch (Exception e) {
+      // 拼接 argTypes
       String argTypes = Optional.ofNullable(constructorArgTypes).orElseGet(Collections::emptyList)
           .stream().map(Class::getSimpleName).collect(Collectors.joining(","));
+      // 拼接 argValues
       String argValues = Optional.ofNullable(constructorArgs).orElseGet(Collections::emptyList)
           .stream().map(String::valueOf).collect(Collectors.joining(","));
+      //跑出生成对象异常
       throw new ReflectionException("Error instantiating " + type + " with invalid types (" + argTypes + ") or values (" + argValues + "). Cause: " + e, e);
     }
   }
 
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
+    //集合类型默认创建ArrayList类型
     if (type == List.class || type == Collection.class || type == Iterable.class) {
       classToCreate = ArrayList.class;
     } else if (type == Map.class) {
+      //Map 类型默认创建对象为HashMap
       classToCreate = HashMap.class;
     } else if (type == SortedSet.class) { // issue #510 Collections Support
       classToCreate = TreeSet.class;
     } else if (type == Set.class) {
+      //Set 类型默认使用HashSet
       classToCreate = HashSet.class;
     } else {
       classToCreate = type;
@@ -105,6 +132,13 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     return classToCreate;
   }
 
+  /**
+   * 判断是否是集合Collection类型 或者是Collection的子类
+   * @param type
+   *          Object type
+   * @param <T>
+   * @return
+   */
   @Override
   public <T> boolean isCollection(Class<T> type) {
     return Collection.class.isAssignableFrom(type);

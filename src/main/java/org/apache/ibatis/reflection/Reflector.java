@@ -553,7 +553,7 @@ public class Reflector {
 
   /**
    * Check to see if a class has a readable property by name.
-   *
+   * 判断指定属性名是否存在getter方法
    * @param propertyName - the name of the property to check
    * @return True if the object has a readable property by the name
    */
