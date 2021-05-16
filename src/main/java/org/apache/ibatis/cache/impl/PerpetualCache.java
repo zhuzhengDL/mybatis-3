@@ -21,13 +21,17 @@ import java.util.Map;
 import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
-/**
+/**  所有装修缓存的底层实现， 基于HashMao
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
-
+  /**
+   * 标识
+   */
   private final String id;
-
+  /**
+   * 缓存容器 MAP
+   */
   private final Map<Object, Object> cache = new HashMap<>();
 
   public PerpetualCache(String id) {
