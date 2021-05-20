@@ -36,11 +36,11 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.TYPE)  // 注册到类
 public @interface MappedTypes {
   /**
    * Returns java types to map {@link TypeHandler}.
-   *
+   *   匹配的 Java Type 类型的数组
    * @return java types
    */
   Class<?>[] value();
