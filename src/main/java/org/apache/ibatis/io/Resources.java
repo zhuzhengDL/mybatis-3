@@ -31,9 +31,13 @@ import java.util.Properties;
  * @author Clinton Begin
  */
 public class Resources {
-
+  /**
+   * ClassLoaderWrapper 对象
+   */
   private static ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
-
+  /**
+   * 字符集
+   */
   /**
    * Charset to use when calling getResourceAsReader.
    * null means use the system default.
@@ -42,7 +46,17 @@ public class Resources {
 
   Resources() {
   }
+  public static void setCharset(Charset charset) {
+    Resources.charset = charset;
+  }
 
+  /**  修改 ClassLoaderWrapper.defaultClassLoader
+   * Sets the default classloader
+   * @param defaultClassLoader - the new default ClassLoader
+   */
+  public static void setDefaultClassLoader(ClassLoader defaultClassLoader) {
+    classLoaderWrapper.defaultClassLoader = defaultClassLoader;
+  }
   /**
    * Returns the default classloader (may be null).
    *
@@ -52,14 +66,7 @@ public class Resources {
     return classLoaderWrapper.defaultClassLoader;
   }
 
-  /**
-   * Sets the default classloader
-   *
-   * @param defaultClassLoader - the new default ClassLoader
-   */
-  public static void setDefaultClassLoader(ClassLoader defaultClassLoader) {
-    classLoaderWrapper.defaultClassLoader = defaultClassLoader;
-  }
+
 
   /**
    * Returns the URL of the resource on the classpath
@@ -125,6 +132,7 @@ public class Resources {
    */
   public static Properties getResourceAsProperties(String resource) throws IOException {
     Properties props = new Properties();
+    // 读取
     try (InputStream in = getResourceAsStream(resource)) {
       props.load(in);
     }
@@ -141,6 +149,7 @@ public class Resources {
    */
   public static Properties getResourceAsProperties(ClassLoader loader, String resource) throws IOException {
     Properties props = new Properties();
+    // 读取
     try (InputStream in = getResourceAsStream(loader, resource)) {
       props.load(in);
     }
@@ -214,6 +223,7 @@ public class Resources {
    */
   public static InputStream getUrlAsStream(String urlString) throws IOException {
     URL url = new URL(urlString);
+    // 打开 URLConnection
     URLConnection conn = url.openConnection();
     return conn.getInputStream();
   }
@@ -265,8 +275,6 @@ public class Resources {
     return charset;
   }
 
-  public static void setCharset(Charset charset) {
-    Resources.charset = charset;
-  }
+
 
 }
