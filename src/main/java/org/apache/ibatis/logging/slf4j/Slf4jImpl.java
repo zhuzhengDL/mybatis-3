@@ -30,8 +30,9 @@ public class Slf4jImpl implements Log {
   private Log log;
 
   public Slf4jImpl(String clazz) {
+    // 使用 SLF LoggerFactory 获得 SLF Logger 对象
     Logger logger = LoggerFactory.getLogger(clazz);
-
+    // 如果是 LocationAwareLogger ，则创建 Slf4jLocationAwareLoggerImpl 对象
     if (logger instanceof LocationAwareLogger) {
       try {
         // check for slf4j >= 1.6 method signature
@@ -42,7 +43,7 @@ public class Slf4jImpl implements Log {
         // fail-back to Slf4jLoggerImpl
       }
     }
-
+    // 否则，创建 Slf4jLoggerImpl 对象
     // Logger is not LocationAwareLogger or slf4j version < 1.6
     log = new Slf4jLoggerImpl(logger);
   }
