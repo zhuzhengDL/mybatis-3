@@ -509,6 +509,7 @@ public final class TypeHandlerRegistry {
   @SuppressWarnings("unchecked")
   /**
    * 初始化具体的TypeHandler
+   * 通过构造函数创建TypeHandler
    */
   public <T> TypeHandler<T> getInstance(Class<?> javaTypeClass, Class<?> typeHandlerClass) {
     // 获得 Class 类型的构造方法
@@ -517,7 +518,7 @@ public final class TypeHandlerRegistry {
         Constructor<?> c = typeHandlerClass.getConstructor(Class.class); // 符合这个条件的，例如 EnumTypeHandler
         return (TypeHandler<T>) c.newInstance(javaTypeClass);
       } catch (NoSuchMethodException ignored) {
-        // ignored
+        // ignored   不是枚举类型直接忽略
       } catch (Exception e) {
         throw new TypeException("Failed invoking constructor for handler " + typeHandlerClass, e);
       }

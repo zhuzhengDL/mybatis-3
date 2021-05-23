@@ -44,14 +44,22 @@ import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
     return build(reader, null, properties);
   }
 
+  /**
+   * 构造 SqlSessionFactory 对象
+   * @param reader Reader 对象
+   * @param environment  环境
+   * @param properties  Properties 变量
+   * @return SqlSessionFactory 对象
+   */
   public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
     try {
       // SqlSessionFactoryBuilder 会创建 XMLConfigBuilder对象 来解析 mybatis-config.xml配置文件
       // XMLConfigBuilder 继承自 BaseBuilder抽象类，顾名思义这一系的类使用了 建造者设计模式
 
-      //读取mybatis-config.xml 配置文件,解析文件，封装配置信息到 Configuration对象
+      //<1> 创建 XMLConfigBuilder 对象 读取mybatis-config.xml 配置文件,解析文件，封装配置信息到 Configuration对象
       XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
-      //根据Configuration对象生成SqlSessionFactory返回
+      // <2> 执行 XML 解析
+      // <3> 创建 DefaultSqlSessionFactory 对象  根据Configuration对象生成SqlSessionFactory返回
       return build(parser.parse());
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error building SqlSession.", e);

@@ -111,6 +111,7 @@ public class TypeAliasRegistry {
   // throws class cast exception as well if types cannot be assigned
   /**
    * 获得别名对应的类型。代码如下：
+   *  typeAliases中如果没有对应的别名  认为是类名  通过类加载器获取calss
    */
   public <T> Class<T> resolveAlias(String string) {
     try {
