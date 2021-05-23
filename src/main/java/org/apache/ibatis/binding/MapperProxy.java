@@ -40,8 +40,19 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
       | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PUBLIC;
   private static final Constructor<Lookup> lookupConstructor;
   private static final Method privateLookupInMethod;
+  /**
+   * SqlSession 对象
+   */
   private final SqlSession sqlSession;
+  /**
+   * Mapper 接口
+   */
   private final Class<T> mapperInterface;
+  /**
+   * 方法与 MapperMethod 的映射
+   *
+   * 从 {@link MapperProxyFactory#methodCache} 传递过来
+   */
   private final Map<Method, MapperMethodInvoker> methodCache;
 
   public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethodInvoker> methodCache) {
@@ -79,9 +90,11 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      // <1> 如果是 Object 定义的方法，直接调用
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, args);
       } else {
+        //从缓存中取得方法的执行代理 并执行代理方法
         return cachedInvoker(method).invoke(proxy, method, args, sqlSession);
       }
     } catch (Throwable t) {
@@ -94,17 +107,22 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
       // A workaround for https://bugs.openjdk.java.net/browse/JDK-8161372
       // It should be removed once the fix is backported to Java 8 or
       // MyBatis drops Java 8 support. See gh-1929
+      // <4.1> 从本地methodCache中获取对应的method执行代理对象
       MapperMethodInvoker invoker = methodCache.get(method);
       if (invoker != null) {
         return invoker;
       }
-
+      //<4.2>默认从 methodCache 缓存中获取。如果不存在，则进行创建MethodInvoker，并进行缓存。
       return methodCache.computeIfAbsent(method, m -> {
+        //判断是否是defaukt修饰的方法
+        //JDK8 在接口上，新增了 default 修饰符。怎么进行反射调用，见 《java8 通过反射执行接口的default方法》 一文。
         if (m.isDefault()) {
           try {
             if (privateLookupInMethod == null) {
+              //JDK 9 以下版本
               return new DefaultMethodInvoker(getMethodHandleJava8(method));
             } else {
+              //JDK 9 版本
               return new DefaultMethodInvoker(getMethodHandleJava9(method));
             }
           } catch (IllegalAccessException | InstantiationException | InvocationTargetException
@@ -112,6 +130,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
             throw new RuntimeException(e);
           }
         } else {
+          //<4.3>没有defaukt修饰的普通接口方法
           return new PlainMethodInvoker(new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
         }
       });
@@ -144,11 +163,13 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 
     public PlainMethodInvoker(MapperMethod mapperMethod) {
       super();
+      //<5.1> 获得 MapperMethod 对象
       this.mapperMethod = mapperMethod;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args, SqlSession sqlSession) throws Throwable {
+      //5.2 执行 MapperMethod 方法
       return mapperMethod.execute(sqlSession, args);
     }
   }
