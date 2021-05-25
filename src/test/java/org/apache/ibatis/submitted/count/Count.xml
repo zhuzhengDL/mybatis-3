@@ -30,4 +30,10 @@
   <!--<resultMap id="dd" type="Integer">
     <result></result>
   </resultMap>-->
+  <resultMap id="" type="">
+    <constructor >
+      <arg name=""></arg>
+      <idArg resultMap="" name=""></idArg>
+    </constructor>
+  </resultMap>
 </mapper>

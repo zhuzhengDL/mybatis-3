@@ -31,5 +31,9 @@
     select id, name
     from users where id = #{id}
   </select>
-
+   <resultMap id="" type="">
+     <discriminator javaType=""
+       <case value="" ></case>
+     </discriminator>
+   </resultMap>
 </mapper>
