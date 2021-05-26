@@ -36,4 +36,8 @@
       <idArg resultMap="" name=""></idArg>
     </constructor>
   </resultMap>
+
+  <insert id="" useGeneratedKeys="">
+    <selectKey r></selectKey>
+  </insert>
 </mapper>
