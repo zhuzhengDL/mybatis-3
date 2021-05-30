@@ -230,6 +230,9 @@ public class Configuration {
    * ResultMapResolver 集合  第一次解析失败的集合
    */
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
+  /**
+   * 未完成的 MethodResolver 集合
+   */
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /*  Cache 指向的映射
