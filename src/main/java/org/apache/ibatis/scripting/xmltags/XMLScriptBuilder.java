@@ -84,7 +84,7 @@ public class XMLScriptBuilder extends BaseBuilder {
       //动态SqlSource
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
-      //静态SqlSource
+      //原始SqlSource
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;

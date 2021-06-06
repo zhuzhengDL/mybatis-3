@@ -40,18 +40,35 @@ public class SqlSourceBuilder extends BaseBuilder {
     super(configuration);
   }
 
+  /**
+   * 执行解析原始 SQL ，成为 SqlSource 对象
+   * @param originalSql  原始 SQL
+   * @param parameterType 参数类型
+   * @param additionalParameters  附加参数集合。可能是空集合，也可能是 {@link org.apache.ibatis.scripting.xmltags.DynamicContext#bindings} 集合
+   * @return SqlSource 对象
+   */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
+    // <1> 创建 ParameterMappingTokenHandler 对象
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+    // <2> 创建 GenericTokenParser 对象
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
     String sql;
+    // <3> 执行解析
     if (configuration.isShrinkWhitespacesInSql()) {
+      //在 Sql 中缩小空格
       sql = parser.parse(removeExtraWhitespaces(originalSql));
     } else {
       sql = parser.parse(originalSql);
     }
+    // <4> 创建 StaticSqlSource 对象  最终都是转化成StaticSqlSource,类似sql语句：select * from table where id=?
     return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
   }
 
+  /**
+   * 删除额外的空格
+   * @param original
+   * @return
+   */
   public static String removeExtraWhitespaces(String original) {
     StringTokenizer tokenizer = new StringTokenizer(original);
     StringBuilder builder = new StringBuilder();
@@ -68,13 +85,23 @@ public class SqlSourceBuilder extends BaseBuilder {
 
   private static class ParameterMappingTokenHandler extends BaseBuilder implements TokenHandler {
 
+    /**
+     * ParameterMapping 数组
+     */
     private List<ParameterMapping> parameterMappings = new ArrayList<>();
+    /**
+     *  参数类型
+     */
     private Class<?> parameterType;
+    /**
+     * additionalParameters 参数的对应的 MetaObject 对象
+     */
     private MetaObject metaParameters;
 
     public ParameterMappingTokenHandler(Configuration configuration, Class<?> parameterType, Map<String, Object> additionalParameters) {
       super(configuration);
       this.parameterType = parameterType;
+      // 创建 additionalParameters 参数的对应的 MetaObject 对象
       this.metaParameters = configuration.newMetaObject(additionalParameters);
     }
 
@@ -84,14 +111,23 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     @Override
     public String handleToken(String content) {
+      // <1> 构建 ParameterMapping 对象，并添加到 parameterMappings 中
       parameterMappings.add(buildParameterMapping(content));
+      // <2> 返回 ? 占位符
       return "?";
     }
 
+    /**
+     *  #{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler}
+     * @param content 为 #{ }之间的内容
+     * @return
+     */
     private ParameterMapping buildParameterMapping(String content) {
+      // <1> 解析成 Map 集合
       Map<String, String> propertiesMap = parseParameterMapping(content);
-      String property = propertiesMap.get("property");
-      Class<?> propertyType;
+      // <2> 获得属性的名字和类型
+      String property = propertiesMap.get("property"); // 名字
+      Class<?> propertyType;                      // 类型
       if (metaParameters.hasGetter(property)) { // issue #448 get type from additional params
         propertyType = metaParameters.getGetterType(property);
       } else if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
@@ -108,9 +144,11 @@ public class SqlSourceBuilder extends BaseBuilder {
           propertyType = Object.class;
         }
       }
+      // <3> 创建 ParameterMapping.Builder 对象
       ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
       Class<?> javaType = propertyType;
       String typeHandlerAlias = null;
+      // <3.1> 初始化 ParameterMapping.Builder 对象的属性
       for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
         String name = entry.getKey();
         String value = entry.getValue();
@@ -138,8 +176,10 @@ public class SqlSourceBuilder extends BaseBuilder {
         }
       }
       if (typeHandlerAlias != null) {
+        // <3.2> 如果 typeHandlerAlias 非空，则获得对应的 TypeHandler 对象，并设置到 ParameterMapping.Builder 对象中
         builder.typeHandler(resolveTypeHandler(javaType, typeHandlerAlias));
       }
+      // <3.3> 创建 ParameterMapping 对象
       return builder.build();
     }
 

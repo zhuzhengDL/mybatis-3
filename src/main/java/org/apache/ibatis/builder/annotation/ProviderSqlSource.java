@@ -36,13 +36,31 @@ import org.apache.ibatis.session.Configuration;
 public class ProviderSqlSource implements SqlSource {
 
   private final Configuration configuration;
+  /**
+   * @XXXProvider 注解的对应的类
+   */
   private final Class<?> providerType;
   private final LanguageDriver languageDriver;
   private final Method mapperMethod;
+  /**
+   *  注解的对应的方法
+   */
   private final Method providerMethod;
+  /**
+   * 注解的对应的方法的参数名数组
+   */
   private final String[] providerMethodArgumentNames;
+  /**
+   * 注解的对应的方法的参数类型数组
+   */
   private final Class<?>[] providerMethodParameterTypes;
+  /**
+   * 若 {@link #providerMethodParameterTypes} 参数有 ProviderContext 类型的，创建 ProviderContext 对象
+   */
   private final ProviderContext providerContext;
+  /**
+   * {@link #providerMethodParameterTypes} 参数中，ProviderContext 类型的参数，在数组中的位置
+   */
   private final Integer providerContextIndex;
 
   /**
