@@ -28,6 +28,7 @@ public class SetSqlNode extends TrimSqlNode {
   private static final List<String> COMMA = Collections.singletonList(",");
 
   public SetSqlNode(Configuration configuration,SqlNode contents) {
+    //使用父类TrimSqlNode的构造函数
     super(configuration, contents, "SET", COMMA, null, COMMA);
   }
 

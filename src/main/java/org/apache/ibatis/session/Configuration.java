@@ -178,6 +178,9 @@ public class Configuration {
   protected final InterceptorChain interceptorChain = new InterceptorChain();
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(this);
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  /**
+   * LanguageDriverRegistry 对象
+   */
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
   /**
    * MappedStatement 映射
@@ -278,7 +281,7 @@ public class Configuration {
 
     typeAliasRegistry.registerAlias("CGLIB", CglibProxyFactory.class);
     typeAliasRegistry.registerAlias("JAVASSIST", JavassistProxyFactory.class);
-
+    // 注册到 languageRegistry 中
     languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
     languageRegistry.register(RawLanguageDriver.class);
   }
@@ -691,12 +694,14 @@ public class Configuration {
    * @since 3.5.1
    */
   public LanguageDriver getLanguageDriver(Class<? extends LanguageDriver> langClass) {
+    // 获得 langClass 类
     if (langClass == null) {
       // 如果为空，则使用默认类
       return languageRegistry.getDefaultDriver();
     }
     //// 非空 注册到languageRegistry
     languageRegistry.register(langClass);
+    // 获得 LanguageDriver 对象
     return languageRegistry.getDriver(langClass);
   }
 
