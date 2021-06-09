@@ -34,7 +34,7 @@ public interface Transaction {
    */
   Connection getConnection() throws SQLException;
 
-  /** 体检事务
+  /** 提交事务
    * Commit inner database connection.
    * @throws SQLException
    *           the SQL exception

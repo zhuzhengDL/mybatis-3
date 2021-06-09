@@ -127,6 +127,9 @@ public class Configuration {
    */
   protected Class<? extends VFS> vfsImpl;
   protected Class<?> defaultSqlProviderType;
+  /**
+   * {@link org.apache.ibatis.executor.BaseExecutor} 本地缓存范围
+   */
   protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
   protected Set<String> lazyLoadTriggerMethods = new HashSet<>(Arrays.asList("equals", "clone", "hashCode", "toString"));
@@ -743,10 +746,18 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+  /**
+   *   创建 Executor 对象
+   * @param transaction 事务对象
+   * @param executorType 执行器类型
+   * @return Executor对象
+   */
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
-    executorType = executorType == null ? defaultExecutorType : executorType;
-    executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
+    // <1> 获得执行器类型
+    executorType = executorType == null ? defaultExecutorType : executorType; //// 使用默认
+    executorType = executorType == null ? ExecutorType.SIMPLE : executorType;// 使用 ExecutorType.SIMPLE
     Executor executor;
+    // <2> 创建对应实现的 Executor 对象
     if (ExecutorType.BATCH == executorType) {
       executor = new BatchExecutor(this, transaction);
     } else if (ExecutorType.REUSE == executorType) {
@@ -754,9 +765,13 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    //判断是否开启二级缓存
+    // <3> 如果开启缓存，创建 CachingExecutor 对象，进行包装
     if (cacheEnabled) {
+      //开启就初始化CachingExecutor  代理之前的CachingExecutor BatchExecutor/ReuseExecutor/SimpleExecutor 三个之一
       executor = new CachingExecutor(executor);
     }
+    // <4> 应用插件
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

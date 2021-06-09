@@ -38,11 +38,19 @@ import org.apache.ibatis.transaction.Transaction;
  */
 public class CachingExecutor implements Executor {
 
+  /**
+   * 被委托的 Executor 对象  BatchExecutor/ReuseExecutor/SimpleExecutor 三个中间的一个
+   */
   private final Executor delegate;
+  /**
+   * TransactionalCacheManager 对象
+   */
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
+    // <1>
     this.delegate = delegate;
+    // <2> 设置 delegate 被当前执行器所包装
     delegate.setExecutorWrapper(this);
   }
 
@@ -51,96 +59,15 @@ public class CachingExecutor implements Executor {
     return delegate.getTransaction();
   }
 
-  @Override
-  public void close(boolean forceRollback) {
-    try {
-      // issues #499, #524 and #573
-      if (forceRollback) {
-        tcm.rollback();
-      } else {
-        tcm.commit();
-      }
-    } finally {
-      delegate.close(forceRollback);
-    }
-  }
 
   @Override
   public boolean isClosed() {
     return delegate.isClosed();
   }
-
-  @Override
-  public int update(MappedStatement ms, Object parameterObject) throws SQLException {
-    flushCacheIfRequired(ms);
-    return delegate.update(ms, parameterObject);
-  }
-
-  @Override
-  public <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException {
-    flushCacheIfRequired(ms);
-    return delegate.queryCursor(ms, parameter, rowBounds);
-  }
-
-  @Override
-  public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
-    BoundSql boundSql = ms.getBoundSql(parameterObject);
-    CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
-    return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
-  }
-
-  @Override
-  public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
-      throws SQLException {
-    Cache cache = ms.getCache();
-    if (cache != null) {
-      flushCacheIfRequired(ms);
-      if (ms.isUseCache() && resultHandler == null) {
-        ensureNoOutParams(ms, boundSql);
-        @SuppressWarnings("unchecked")
-        List<E> list = (List<E>) tcm.getObject(cache, key);
-        if (list == null) {
-          list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
-          tcm.putObject(cache, key, list); // issue #578 and #116
-        }
-        return list;
-      }
-    }
-    return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
-  }
-
   @Override
   public List<BatchResult> flushStatements() throws SQLException {
     return delegate.flushStatements();
   }
-
-  @Override
-  public void commit(boolean required) throws SQLException {
-    delegate.commit(required);
-    tcm.commit();
-  }
-
-  @Override
-  public void rollback(boolean required) throws SQLException {
-    try {
-      delegate.rollback(required);
-    } finally {
-      if (required) {
-        tcm.rollback();
-      }
-    }
-  }
-
-  private void ensureNoOutParams(MappedStatement ms, BoundSql boundSql) {
-    if (ms.getStatementType() == StatementType.CALLABLE) {
-      for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
-        if (parameterMapping.getMode() != ParameterMode.IN) {
-          throw new ExecutorException("Caching stored procedures with OUT params is not supported.  Please configure useCache=false in " + ms.getId() + " statement.");
-        }
-      }
-    }
-  }
-
   @Override
   public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql) {
     return delegate.createCacheKey(ms, parameterObject, rowBounds, boundSql);
@@ -161,13 +88,119 @@ public class CachingExecutor implements Executor {
     delegate.clearLocalCache();
   }
 
+  @Override
+  public int update(MappedStatement ms, Object parameterObject) throws SQLException {
+    // 如果需要清空缓存，则进行清空
+    flushCacheIfRequired(ms);
+    // 执行 delegate 对应的方法
+    return delegate.update(ms, parameterObject);
+  }
+
+  @Override
+  public <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException {
+    // 如果需要清空缓存，则进行清空
+    flushCacheIfRequired(ms);
+    // 执行 delegate 对应的方法
+    return delegate.queryCursor(ms, parameter, rowBounds);
+  }
+
+  @Override
+  public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    // 获得 BoundSql 对象
+    BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 创建 CacheKey 对象
+    CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
+    // 查询
+    return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+  }
+
+  @Override
+  public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
+      throws SQLException {
+    // <1>
+    Cache cache = ms.getCache();
+    if (cache != null) {// <2>
+      // <2.1> 如果需要清空缓存，则进行清空
+      flushCacheIfRequired(ms);
+      if (ms.isUseCache() && resultHandler == null) { // <2.2>
+        // 暂时忽略，存储过程相关
+        ensureNoOutParams(ms, boundSql);
+        @SuppressWarnings("unchecked")
+        // <2.3> 从二级缓存中，获取结果
+        List<E> list = (List<E>) tcm.getObject(cache, key);
+        if (list == null) {
+          // <2.4.1> 如果不存在，则从数据库中查询
+          list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // <2.4.2> 缓存结果到二级缓存中
+          tcm.putObject(cache, key, list); // issue #578 and #116
+        }
+        // <2.5> 如果存在，则直接返回结果
+        return list;
+      }
+    }
+    // <3> 不使用缓存，则从数据库中查询
+    return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+  }
+
+
+
+  @Override
+  public void commit(boolean required) throws SQLException {
+    // 执行 delegate 对应的方法
+    delegate.commit(required);
+    // 提交 TransactionalCacheManager
+    tcm.commit();
+  }
+
+  @Override
+  public void rollback(boolean required) throws SQLException {
+    try {
+      // 执行 delegate 对应的方法
+      delegate.rollback(required);
+    } finally {
+      if (required) {
+        // 回滚 TransactionalCacheManager
+        tcm.rollback();
+      }
+    }
+  }
+
+  private void ensureNoOutParams(MappedStatement ms, BoundSql boundSql) {
+    if (ms.getStatementType() == StatementType.CALLABLE) {
+      for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
+        if (parameterMapping.getMode() != ParameterMode.IN) {
+          throw new ExecutorException("Caching stored procedures with OUT params is not supported.  Please configure useCache=false in " + ms.getId() + " statement.");
+        }
+      }
+    }
+  }
+
+
+
+
   private void flushCacheIfRequired(MappedStatement ms) {
     Cache cache = ms.getCache();
-    if (cache != null && ms.isFlushCacheRequired()) {
+    if (cache != null && ms.isFlushCacheRequired()) { // 是否需要清空缓存
       tcm.clear(cache);
     }
   }
 
+  @Override
+  public void close(boolean forceRollback) {
+    try {
+      // issues #499, #524 and #573
+      if (forceRollback) {
+        // 如果强制回滚，则回滚 TransactionalCacheManager
+        tcm.rollback();
+      } else {
+        // 否则提交 TransactionalCacheManager
+        tcm.commit();
+      }
+    } finally {
+      // 执行 delegate 对应的方法
+      delegate.close(forceRollback);
+    }
+  }
   @Override
   public void setExecutorWrapper(Executor executor) {
     throw new UnsupportedOperationException("This method should not be called");
