@@ -47,16 +47,26 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     Object parameterObject = boundSql.getParameterObject();
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
+    // 如果是 Jdbc3KeyGenerator 类型   基本已经淘汰
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
+      // <1.1> 执行写操作
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
+      // <2.2> 获得更新数量
       rows = statement.getUpdateCount();
+      // <1.3> 执行 keyGenerator 的后置处理逻辑
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
+      // 如果是 SelectKeyGenerator 类型
     } else if (keyGenerator instanceof SelectKeyGenerator) {
+      // <2.1> 执行写操作
       statement.execute(sql);
+      // <2.2> 获得更新数量
       rows = statement.getUpdateCount();
+      // <2.3> 执行 keyGenerator 的后置处理逻辑
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
     } else {
+      // <3.1> 执行写操作
       statement.execute(sql);
+      // <3.2> 获得更新数量
       rows = statement.getUpdateCount();
     }
     return rows;
@@ -65,26 +75,34 @@ public class SimpleStatementHandler extends BaseStatementHandler {
   @Override
   public void batch(Statement statement) throws SQLException {
     String sql = boundSql.getSql();
+    // 添加到批处理
     statement.addBatch(sql);
   }
 
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+    //获取静态SQL
     String sql = boundSql.getSql();
+    // <1> 执行查询
     statement.execute(sql);
+    // <2> 处理返回结果
     return resultSetHandler.handleResultSets(statement);
   }
 
   @Override
   public <E> Cursor<E> queryCursor(Statement statement) throws SQLException {
+    //获取静态SQL
     String sql = boundSql.getSql();
+    // <1> 执行查询
     statement.execute(sql);
+    // <2> 处理返回的 Cursor 结果
     return resultSetHandler.handleCursorResultSets(statement);
   }
 
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
+      //通过connection创建statement
       return connection.createStatement();
     } else {
       return connection.createStatement(mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
