@@ -43,7 +43,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
-/**
+/**  用于处理数据库支持自增主键的情况，如MySQL的auto_increment。
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -72,16 +72,21 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
   }
 
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
+    // <1> 获得主键属性的配置。如果为空，则直接返回，说明不需要主键
     final String[] keyProperties = ms.getKeyProperties();
     if (keyProperties == null || keyProperties.length == 0) {
       return;
     }
+    // <2> 获得返回的自增主键
     try (ResultSet rs = stmt.getGeneratedKeys()) {
       final ResultSetMetaData rsmd = rs.getMetaData();
       final Configuration configuration = ms.getConfiguration();
+      // <3>返回的列数小于属性参数个数 直接忽略
       if (rsmd.getColumnCount() < keyProperties.length) {
         // Error?
       } else {
+        //<4>分配生成的key到参数parameter
+        // 赋值
         assignKeys(configuration, rs, rsmd, keyProperties, parameter);
       }
     } catch (Exception e) {

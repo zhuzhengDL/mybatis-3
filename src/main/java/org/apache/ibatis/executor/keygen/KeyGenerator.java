@@ -24,9 +24,8 @@ import org.apache.ibatis.mapping.MappedStatement;
  * @author Clinton Begin
  */
 public interface KeyGenerator {
-
+  // SQL 执行前 生成id
   void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
-
+  // SQL 执行后 生成id
   void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
-
 }
