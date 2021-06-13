@@ -42,7 +42,7 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Clinton Begin
  */
-public class CglibProxyFactory implements ProxyFactory {
+public class  CglibProxyFactory implements ProxyFactory {
 
   private static final String FINALIZE_METHOD = "finalize";
   private static final String WRITE_REPLACE_METHOD = "writeReplace";

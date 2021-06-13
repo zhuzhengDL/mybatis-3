@@ -25,11 +25,11 @@ import org.apache.ibatis.session.Configuration;
  * @author Eduardo Macarron
  */
 public interface ProxyFactory {
-
+  // 设置属性，目前是空实现。可以暂时无视该方法
   default void setProperties(Properties properties) {
     // NOP
   }
-
+  // 创建代理对象
   Object createProxy(Object target, ResultLoaderMap lazyLoader, Configuration configuration, ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 
 }

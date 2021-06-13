@@ -47,15 +47,20 @@ import org.apache.ibatis.session.RowBounds;
  */
 public class ResultLoaderMap {
 
+  /**
+   * LoadPair 的映射
+   */
   private final Map<String, LoadPair> loaderMap = new HashMap<>();
 
   public void addLoader(String property, MetaObject metaResultObject, ResultLoader resultLoader) {
     String upperFirst = getUppercaseFirstProperty(property);
+    // 已存在，则抛出 ExecutorException 异常
     if (!upperFirst.equalsIgnoreCase(property) && loaderMap.containsKey(upperFirst)) {
       throw new ExecutorException("Nested lazy loaded result property '" + property
               + "' for query id '" + resultLoader.mappedStatement.getId()
               + " already exists in the result map. The leftmost property of all lazy loaded properties must be unique within a result map.");
     }
+    // 创建 LoadPair 对象，添加到 loaderMap 中
     loaderMap.put(upperFirst, new LoadPair(property, metaResultObject, resultLoader));
   }
 
@@ -76,12 +81,14 @@ public class ResultLoaderMap {
   }
 
   public boolean load(String property) throws SQLException {
+    // 获得 LoadPair 对象，并移除
     LoadPair pair = loaderMap.remove(property.toUpperCase(Locale.ENGLISH));
     if (pair != null) {
+      // 执行加载
       pair.load();
-      return true;
+      return true; // 加载成功
     }
-    return false;
+    return false; // 加载失败
   }
 
   public void remove(String property) {
@@ -91,11 +98,18 @@ public class ResultLoaderMap {
   public void loadAll() throws SQLException {
     final Set<String> methodNameSet = loaderMap.keySet();
     String[] methodNames = methodNameSet.toArray(new String[methodNameSet.size()]);
+    // 遍历 loaderMap 属性
     for (String methodName : methodNames) {
+      // 执行加载
       load(methodName);
     }
   }
-
+  /**
+   * 使用 . 分隔属性，并获得首个字符串，并大写
+   *
+   * @param property 属性
+   * @return 字符串 + 大写
+   */
   private static String getUppercaseFirstProperty(String property) {
     String[] parts = property.split("\\.");
     return parts[0].toUpperCase(Locale.ENGLISH);
@@ -180,7 +194,7 @@ public class ResultLoaderMap {
       if (this.resultLoader == null) {
         throw new IllegalArgumentException("resultLoader is null");
       }
-
+      // 执行加载
       this.load(null);
     }
 
@@ -191,8 +205,9 @@ public class ResultLoaderMap {
                   + "required parameter of mapped statement ["
                   + this.mappedStatement + "] is not serializable.");
         }
-
+        // 获得 Configuration 对象
         final Configuration config = this.getConfiguration();
+        // 获得 MappedStatement 对象
         final MappedStatement ms = config.getMappedStatement(this.mappedStatement);
         if (ms == null) {
           throw new ExecutorException("Cannot lazy load property [" + this.property
@@ -200,8 +215,9 @@ public class ResultLoaderMap {
                   + "] because configuration does not contain statement ["
                   + this.mappedStatement + "]");
         }
-
+        // 获得对应的 MetaObject 对象
         this.metaResultObject = config.newMetaObject(userObject);
+        // 创建 ResultLoader 对象
         this.resultLoader = new ResultLoader(config, new ClosedExecutor(), ms, this.mappedParameter,
                 metaResultObject.getSetterType(this.property), null, null);
       }
@@ -215,7 +231,7 @@ public class ResultLoaderMap {
         this.resultLoader = new ResultLoader(old.configuration, new ClosedExecutor(), old.mappedStatement,
                 old.parameterObject, old.targetType, old.cacheKey, old.boundSql);
       }
-
+    // <3>
       this.metaResultObject.setValue(property, this.resultLoader.loadResult());
     }
 
