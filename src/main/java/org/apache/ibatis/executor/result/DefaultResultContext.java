@@ -22,16 +22,29 @@ import org.apache.ibatis.session.ResultContext;
  */
 public class DefaultResultContext<T> implements ResultContext<T> {
 
+  /**
+   *  @return 当前结果对象
+   */
   private T resultObject;
+  /**
+   * @return 总的结果对象的数量
+   */
   private int resultCount;
+  /**
+   * @return 是否暂停
+   */
   private boolean stopped;
 
   public DefaultResultContext() {
     resultObject = null;
     resultCount = 0;
-    stopped = false;
+    stopped = false;//默认非暂停
   }
 
+  /**
+   *  当前结果对象
+   * @return
+   */
   @Override
   public T getResultObject() {
     return resultObject;
@@ -49,9 +62,13 @@ public class DefaultResultContext<T> implements ResultContext<T> {
 
   public void nextResultObject(T resultObject) {
     resultCount++;
+    // 当前结果对象
     this.resultObject = resultObject;
   }
 
+  /**
+   * 暂停  Cursor查询需要
+   */
   @Override
   public void stop() {
     this.stopped = true;
