@@ -120,8 +120,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
   }
 
 
-  // openSession()系列方法都是通过当前SqlSessionManager对象持有的
-  // DefaultSqlSessionFactory实例的openSession()实现的
+  // openSession()系列方法都是通过当前SqlSessionManager对象持有的 DefaultSqlSessionFactory实例的openSession()实现的
   @Override
   public SqlSession openSession() {
     return sqlSessionFactory.openSession();
@@ -357,6 +356,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       // 获取 与当前线程绑定的SqlSession
       final SqlSession sqlSession = SqlSessionManager.this.localSqlSession.get();
+      // 情况一，如果 localSqlSession 中存在 SqlSession 对象，说明是自管理模式
       if (sqlSession != null) {// 模式二
         // 如果有绑定的SqlSession对象
         try {
@@ -366,6 +366,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
           throw ExceptionUtil.unwrapThrowable(t);
         }
         // 如果没有绑定的SqlSession对象
+        // 情况二，如果没有 SqlSession 对象，则直接创建一个
       } else {
         // 创建一个新的SqlSession对象
         try (SqlSession autoSqlSession = openSession()) {
