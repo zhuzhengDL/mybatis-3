@@ -39,9 +39,9 @@ class PluginTest {
   }
 
   @Intercepts({
-      @Signature(type = Map.class, method = "get", args = {Object.class})})
+      @Signature(type = Map.class, method = "get", args = {Object.class})}) //<1>
   public static class AlwaysMapPlugin implements Interceptor {
-    @Override
+    @Override // <4>
     public Object intercept(Invocation invocation) {
       return "Always";
     }

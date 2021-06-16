@@ -48,7 +48,7 @@ import java.lang.annotation.Target;
 public @interface Intercepts {
   /**
    * Returns method signatures to intercept.
-   *
+   * 返回要拦截的方法签名。
    * @return method signatures
    */
   Signature[] value();

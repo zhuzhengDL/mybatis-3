@@ -22,21 +22,21 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 
-@Intercepts({})
+@Intercepts({})  //<1>
 public class ExamplePlugin implements Interceptor {
   private Properties properties;
 
-  @Override
+  @Override // <4>
   public Object intercept(Invocation invocation) throws Throwable {
     return invocation.proceed();
   }
 
-  @Override
+  @Override // <2>
   public Object plugin(Object target) {
     return Plugin.wrap(target, this);
   }
 
-  @Override
+  @Override  // <3>
   public void setProperties(Properties properties) {
     this.properties = properties;
   }
