@@ -33,7 +33,7 @@ public interface Invoker {
   Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException;
 
   /**
-   * @return 类
+   * @return 类  ／／ 返回属性相应的类型
    */
   Class<?> getType();
 }

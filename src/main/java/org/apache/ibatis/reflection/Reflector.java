@@ -50,15 +50,15 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
 public class Reflector {
 
   /**
-   * 对应的类
+   * ／对应的 Class 类型
    */
   private final Class<?> type;
   /**
-   * 可读属性名称数组
+   * ／可读属性的名称集合，可读属性就是存在相应 getter 方法的属性，初始值为空数纽
    */
   private final String[] readablePropertyNames;
   /**
-   * 可写属性名称数组
+   * ／可写属性的名称集合，可写属性就是存在相应 setter 方法的属性，初始值为空数纽
    */
   private final String[] writablePropertyNames;
 
@@ -143,6 +143,19 @@ public class Reflector {
     resolveGetterConflicts(conflictingGetters);
   }
 
+  /**
+   * 当子类覆盖了父类的 方法且返回值发生变化时，在步骤 中就会产生两 签名
+   * 不同的方法。 例如现有类 及其子类 SubA, 类中定义了 getNames（）方法，其返回值类型是
+   * List String 而在其子类 SubA 中， 覆写了其 getNames（）方法且将返回值修改成 ArrayList String
+   * 类型，这种覆写在 Java 语言中是合法的。最终得到 的两个方法签名分别是 java. util.List#getN ames
+   * java.util.ArrayList#getNames ，在 Reflector.addUniqueMethods（）方法中会被认为是两个不同的
+   * 方法并添加到 uniqueMethods 集合中，这显然不是我们想要的结果。
+   *
+   * 会调用 Reflector.resolveGetterConflicts （）方法对这种覆 的情况进行处理，同
+   * 时会将处理得到的 getter 方法记 getMethods 集合，并将其返回值类型填充到 getTypes 集合
+   *
+   * @param conflictingGetters
+   */
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
     // 遍历每个属性，查找其最匹配的方法。因为子类可以覆写父类的方法，所以一个属性，可能对应多个 getting 方法
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
@@ -167,11 +180,13 @@ public class Reflector {
           } else if (candidate.getName().startsWith("is")) {
             winner = candidate;
           }
-          // 不符合选择子类
+          // 不符合选择子类   winnerType是candidateType子类 保持不变
         } else if (candidateType.isAssignableFrom(winnerType)) {
           // OK getter type is descendant
           // <1.1> 符合选择子类。因为子类可以修改放大返回值。例如，父类的一个方法的返回值为 List ，子类对该方法的返回值可以覆写为 ArrayList 。
+
         } else if (winnerType.isAssignableFrom(candidateType)) {
+          // candidateType是winnerType子类 重新赋值winnerType = candidate
           winner = candidate;
         } else {
           isAmbiguous = true;
@@ -192,8 +207,9 @@ public class Reflector {
         : new MethodInvoker(method);
     // 添加到 getMethods 中
     getMethods.put(name, invoker);
-    // 添加到 getTypes 中
+//／／获取返回值的Type
     Type returnType = TypeParameterResolver.resolveReturnType(method, type);
+    // 添加到 getTypes 中
     getTypes.put(name, typeToClass(returnType));
   }
 
@@ -393,7 +409,7 @@ public class Reflector {
       for (Class<?> anInterface : interfaces) {
         addUniqueMethods(uniqueMethods, anInterface.getMethods());
       }
-      //获取父类
+      //获取父类 ／／获取父类 ，继续 while 循环
       currentClass = currentClass.getSuperclass();
     }
     // 转换成 Method 数组返回
@@ -410,6 +426,8 @@ public class Reflector {
         // check to see if the method is already known
         // if it is known, then an extended class must have
         // overridden a method
+        //检测是否已经添加过该方法，如果在子类中已经添加过， 9)1］表示子类覆盖了该方法，
+       // 元须再向 uniqueMethods 合中添加该方法了
         if (!uniqueMethods.containsKey(signature)) {
           uniqueMethods.put(signature, currentMethod);
         }
@@ -419,6 +437,13 @@ public class Reflector {
 
   /**
    * 获取方法签名
+   * ／／通过 Reflector.getSignature （） 方法得到的方法签名是：返回值类型＃方法名称：参
+   * ／／数类型列表
+   * 例如， Reflector.getSignature(Method ）方法的唯一签名是：
+   *
+   *  java.lang.String#getSignature:java.lang.reflect.Method
+   * ／／通过 Reflector getSignature ）方法得到的方法签名是全局唯一的，可以作为该方法
+   * ／／的唯一标识
    * @param method
    * @return
    */

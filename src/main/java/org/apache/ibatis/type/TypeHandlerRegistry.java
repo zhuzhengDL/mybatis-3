@@ -55,6 +55,8 @@ import org.apache.ibatis.session.Configuration;
 public final class TypeHandlerRegistry {
   /**
    * JDBC Type 和 {@link TypeHandler} 的映射
+   * ／／ 记录 JdbcType TypeHandler 之间的对应关系，其中 JdbcType 一个枚举类型，它定义对应的 JDBC 类型
+   * ／／该集合主要用于从结果集读取数据时，将数据从 Jdbc 类型转换成 Java 类型
    *
    * {@link #register(JdbcType, TypeHandler)}
    */
@@ -65,6 +67,8 @@ public final class TypeHandlerRegistry {
    * KEY1：JDBC Type    一个java类型 可能对应多个jdbc Type
    * KEY2：Java Type
    * VALUE：{@link TypeHandler} 对象
+   * ／／ 记录了 Java 类型向指定 JdbcType 转换时，需妥使用的 TypeHandler 对象 例如： Java 类型中的 String 可能
+   * ／／转换成数据库 char varchar 等多种类型，所以存在一对多关系
    */
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
   /**
@@ -76,10 +80,11 @@ public final class TypeHandlerRegistry {
    *
    * KEY：{@link TypeHandler#getClass()}
    * VALUE：{@link TypeHandler} 对象
+   * ／／ 记录了全部 TypeHandler 的类型以及该类型相应的 ypeHandler 对象
    */
   private final Map<Class<?>, TypeHandler<?>> allTypeHandlersMap = new HashMap<>();
   /**
-   * 空 TypeHandler 集合的标识，即使让 {@link #typeHandlerMap} 中，某个 KEY1 对应的 Map<JdbcType, TypeHandler<?>> 为空。
+   * 空 TypeHandler 集合的标识，即让 {@link #typeHandlerMap} 中，某个 KEY1 对应的 Map<JdbcType, TypeHandler<?>> 为空。
    *
    * @see #getJdbcHandlerMap(Type)
    */

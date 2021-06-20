@@ -211,7 +211,7 @@ public class MetaClass {
         metaProp.buildProperty(prop.getChildren(), builder);
       }
       // 无子表达式
-    } else {
+    } else {//递归出口
       // <4> 获得属性名，并添加到 builder 中
       String propertyName = reflector.findPropertyName(name);
       if (propertyName != null) {

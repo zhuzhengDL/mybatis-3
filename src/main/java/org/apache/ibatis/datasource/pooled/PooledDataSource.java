@@ -42,10 +42,12 @@ public class PooledDataSource implements DataSource {
 
   /**
    * PoolState 对象，记录池化的状态
+   * ／／通过 PoolState 管理连接池的状态并记录统计信息
    */
   private final PoolState state = new PoolState(this);
   /**
    * UnpooledDataSource 对象
+   * ／／记录 Unpoo ledData Source 对象，用于生成真实的数据库连接对象，构造函数中会初始化该字段
    */
   private final UnpooledDataSource dataSource;
 
@@ -361,6 +363,7 @@ public class PooledDataSource implements DataSource {
   public void forceCloseAll() {
     synchronized (state) {
       // 计算 expectedConnectionTypeCode
+      // 更新当前连接池 标识
       expectedConnectionTypeCode = assembleConnectionTypeCode(dataSource.getUrl(), dataSource.getUsername(), dataSource.getPassword());
       // 遍历 activeConnections ，进行关闭
       for (int i = state.activeConnections.size(); i > 0; i--) {
@@ -494,7 +497,7 @@ public class PooledDataSource implements DataSource {
             if (log.isDebugEnabled()) {
               log.debug("Created connection " + conn.getRealHashCode() + ".");
             }
-          } else {
+          } else {//活跃连接数已到最大值，则不能创建新连接
 
             // Cannot create new connection
             // 获得首个激活的 PooledConnection 对象
@@ -526,10 +529,12 @@ public class PooledDataSource implements DataSource {
                 }
               }
               // 创建新的 PooledConnection 连接对象
+              //／／创建新 PooledConnect on 对象，但是真正的数据库连接并未创建新的
               conn = new PooledConnection(oldestActiveConnection.getRealConnection(), this);
               conn.setCreatedTimestamp(oldestActiveConnection.getCreatedTimestamp());
               conn.setLastUsedTimestamp(oldestActiveConnection.getLastUsedTimestamp());
               // 设置 oldestActiveConnection 为无效
+              //／／将超时PooledConnection 设置为无效
               oldestActiveConnection.invalidate();
               if (log.isDebugEnabled()) {
                 log.debug("Claimed overdue connection " + conn.getRealHashCode() + ".");
@@ -537,6 +542,7 @@ public class PooledDataSource implements DataSource {
             } else {
               // Must wait
               // 检查到未超时
+              //／／元空 闲连接、无法创建新连接且无超时连接， 则只能阻塞等待
               try {
                 // 对等待连接进行统计。通过 countedWait 标识，在这个循环中，只记录一次。
                 if (!countedWait) {

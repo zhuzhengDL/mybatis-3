@@ -41,7 +41,7 @@ public class TypeParameterResolver {
    *         they will be resolved to the actual runtime {@link Type}s.
    */
   public static Type resolveFieldType(Field field, Type srcType) {
-    // 属性类型
+    // 属性类型  获取字段的声明类型
     Type fieldType = field.getGenericType();
     // 定义的类
     Class<?> declaringClass = field.getDeclaringClass();
@@ -100,15 +100,16 @@ public class TypeParameterResolver {
    * @return  解析后的类型
    */
   private static Type resolveType(Type type, Type srcType, Class<?> declaringClass) {
-    if (type instanceof TypeVariable) {
+    if (type instanceof TypeVariable) {//解析 TypeVariable 类型
       return resolveTypeVar((TypeVariable<?>) type, srcType, declaringClass);
-    } else if (type instanceof ParameterizedType) {
+    } else if (type instanceof ParameterizedType) {//解析 ParameterizedType 类型
       return resolveParameterizedType((ParameterizedType) type, srcType, declaringClass);
-    } else if (type instanceof GenericArrayType) {
+    } else if (type instanceof GenericArrayType) { //解析 GenericArrayType 类型
       return resolveGenericArrayType((GenericArrayType) type, srcType, declaringClass);
     } else {
-      return type;
+      return type;  //Class 类型
     }
+    //／／字段、返回值、参数不可能直接定义成 WildcardType 类型，但可以嵌套在别的类型中，后面会分析到
   }
 
   private static Type resolveGenericArrayType(GenericArrayType genericArrayType, Type srcType, Class<?> declaringClass) {

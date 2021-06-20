@@ -276,6 +276,7 @@ class PooledConnection implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
     // <1> 判断是否为 CLOSE 方法，则将连接放回到连接池中，避免连接被关闭
+    //如果调用 close （）方法，则将其重新放入连接池，而不是真正关闭数据库连接
     if (CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;

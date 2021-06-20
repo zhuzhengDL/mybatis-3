@@ -30,6 +30,7 @@ public final class LogFactory {
 
   /**
    * 使用的 Log 的构造方法
+   * ／／ 记录当前使用的第二方日志组件所对应的适配器的构造方法
    */
   private static Constructor<? extends Log> logConstructor;
 
@@ -104,9 +105,10 @@ public final class LogFactory {
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
       // 获得参数为 String 的构造方法
+      //获取指定适配器的构造方法
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
       // 创建 Log 对象
-      Log log = candidate.newInstance(LogFactory.class.getName());
+      Log log = candidate.newInstance(LogFactory.class.getName()); //实例化
       if (log.isDebugEnabled()) {
         log.debug("Logging initialized using '" + implClass + "' adapter.");
       }
