@@ -71,7 +71,7 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 public class DefaultResultSetHandler implements ResultSetHandler {
 
   private static final Object DEFERRED = new Object();
-
+  // 关联的 Executor Configuration MappedStatement RowBounds 对象 ，前面介绍过， 不再重复
   private final Executor executor;
   private final Configuration configuration;
   private final MappedStatement mappedStatement;
@@ -79,13 +79,16 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   private final ParameterHandler parameterHandler;
   /**
    * 用户指定的用于处理结果的处理器。
-   *
+   * // 用户指定用于处理结果集 ResultHandler 对象
    * 一般情况下，不设置
    */
   private final ResultHandler<?> resultHandler;
   private final BoundSql boundSql;
+  //TypeHanderRegistry 对象前面介绍过，不再重复
   private final TypeHandlerRegistry typeHandlerRegistry;
+  //II 对象工厂
   private final ObjectFactory objectFactory;
+  //反射工厂
   private final ReflectorFactory reflectorFactory;
 
   // nested resultmaps
@@ -207,6 +210,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
     // <1> 多 ResultSet 的结果集合，每个 ResultSet 对应一个 Object 对象。而实际上，每个 Object 是 List<Object> 对象。
     // 在不考虑存储过程的多 ResultSet 的情况，普通的查询，实际就一个 ResultSet ，也就是说，multipleResults 最多就一个元素。
+    //／／ 该集合用于保存映射结果集得到的结果对象
     final List<Object> multipleResults = new ArrayList<>();
 
     int resultSetCount = 0;

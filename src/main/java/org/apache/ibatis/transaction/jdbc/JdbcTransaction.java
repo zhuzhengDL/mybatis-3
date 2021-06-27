@@ -40,11 +40,11 @@ public class JdbcTransaction implements Transaction {
 
   private static final Log log = LogFactory.getLog(JdbcTransaction.class);
   /**
-   * Connection 对象
+   * Connection 对象 ／／事务对应 数据库连接
    */
   protected Connection connection;
   /**
-   * DataSource 对象
+   * DataSource 对象 连接所属的 DataSource
    */
   protected DataSource dataSource;
   /**

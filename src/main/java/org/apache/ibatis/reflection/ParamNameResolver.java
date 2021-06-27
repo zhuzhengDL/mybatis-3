@@ -151,8 +151,11 @@ public class ParamNameResolver {
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
         param.put(entry.getValue(), args[entry.getKey()]);
         // add generic param names (param1, param2, ...)
+        // 下面是为参数创建”param＋索号｜”格式的默认参数名称，例如： paraml param2 等，并添加
+        //／／ param 集合
         final String genericParamName = GENERIC_NAME_PREFIX + (i + 1);
         // ensure not to overwrite parameter named with @Param
+        //／／如采@Param主解指定的参数名称就是 param＋索 引”格式的，则不需要再添加
         if (!names.containsValue(genericParamName)) {
           param.put(genericParamName, args[entry.getKey()]);
         }

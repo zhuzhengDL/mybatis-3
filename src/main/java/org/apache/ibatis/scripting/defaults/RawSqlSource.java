@@ -41,6 +41,7 @@ public class RawSqlSource implements SqlSource {
 
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
     // <1> 获得 Sql
+    //／／调用 getSql （）方法，完成 SQL 语句的拼笨和初步解析
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
@@ -49,11 +50,14 @@ public class RawSqlSource implements SqlSource {
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
     // <2> 获得 SqlSource 对象
+    //／／通过 SqlSourceBuilder 完成占位符的解析和替换操作
+    // SqlSourceBuilder parse （）方法返回 的是 StaticSqlSource
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }
 
   private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
     // 创建 DynamicContext 对象
+
     DynamicContext context = new DynamicContext(configuration, null);
     // 解析出 SqlSource 对象
     rootSqlNode.apply(context);

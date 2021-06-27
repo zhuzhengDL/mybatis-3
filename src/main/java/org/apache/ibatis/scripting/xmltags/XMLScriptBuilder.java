@@ -77,6 +77,8 @@ public class XMLScriptBuilder extends BaseBuilder {
 
   public SqlSource parseScriptNode() {
     // <1> 解析 SQL
+    //／／首先判断当前的节点是不是有动态 SQL ，动态 SQL 会包括占位符${}或是动态 SQL 的相关节点
+    // SqlNode 集合包装成一个 MixedSqlNode ，后面会详细介绍 SqlNode 以及 MixedSqlNode
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     // <2> 创建 SqlSource 对象
     SqlSource sqlSource;
@@ -90,6 +92,13 @@ public class XMLScriptBuilder extends BaseBuilder {
     return sqlSource;
   }
 
+  /**
+   * XMLScriptBuilder parseDynamicTags（） 方法中，会遍历＜selctKey＞下的每个节点，如果包
+   * 含任何标签节点， 认为是动态 SQL 语句 如果文本节点中含有“$｛｝”占位符，也认为其为
+   * 动态 SQL 语句。
+   * @param node
+   * @return
+   */
   protected MixedSqlNode parseDynamicTags(XNode node) {
     // <1> 创建 SqlNode 数组
     List<SqlNode> contents = new ArrayList<>();
@@ -105,6 +114,7 @@ public class XMLScriptBuilder extends BaseBuilder {
         // <2.1.2> 创建 TextSqlNode 对象
         TextSqlNode textSqlNode = new TextSqlNode(data);
         // <2.1.2.1> 如果是动态的 TextSqlNode 对象
+        //／／解析 SQL 语句，如采含有未解析的”$｛｝”占位符，贝］为动态 SQL
         if (textSqlNode.isDynamic()) {
           // 添加到 contents 中
           contents.add(textSqlNode);
@@ -123,7 +133,10 @@ public class XMLScriptBuilder extends BaseBuilder {
         if (handler == null) { // 获得不到，说明是未知的标签，抛出 BuilderException 异常
           throw new BuilderException("Unknown element <" + nodeName + "> in SQL statement.");
         }
+        //／／如采子节点是 个标签，那么一定是动态 SQL ，并且根据不同的动态标签生成
+        //／／不同的 NodeHandler
         // <2.2.2> 执行 NodeHandler 处理
+        //／／处理动态 SQL ，并将解析得到 SqlNode 对象放入 contents 集合中保存
         handler.handleNode(child, contents);
         // <2.2.3> 标记为动态 SQL
         isDynamic = true;

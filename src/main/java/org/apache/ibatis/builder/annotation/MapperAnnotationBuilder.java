@@ -124,6 +124,8 @@ public class MapperAnnotationBuilder {
     // <1> 判断当前 Mapper 接口是否应加载过。
     if (!configuration.isResourceLoaded(resource)) {
       // <1> 判断当前 Mapper 接口是否应加载过。
+      //／／检测是否加载过对应的映射配置文件，如采未加载，则创建 XMLMapperBui lder 对象解析对应的
+      //／／映射文件 ，该过程就是前面介绍的映射配置文件解析过程
       loadXmlResource();
       // <3> 标记该 Mapper 接口已经加载过
       configuration.addLoadedResource(resource);
@@ -146,6 +148,7 @@ public class MapperAnnotationBuilder {
         }
         try {
           // <7.1> 执行解析
+          //／／解析＠ SelectKey 、自 ResultMap 等注解，并创 MappedStatement 对象
           parseStatement(method);
         } catch (IncompleteElementException e) {
           // <7.2> 解析失败，添加到 configuration 中

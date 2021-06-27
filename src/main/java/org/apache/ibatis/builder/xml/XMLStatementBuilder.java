@@ -94,6 +94,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 
     // <8> 获得 SQL 对应的 SqlCommandType 枚举值
     // 获取sql命令类型  select->SELECT insert->INSERT delete->DELETE update->UPDATE
+    //／／ 根据 SQL 节点的名称决定其 SqlCommandType
     String nodeName = context.getNode().getNodeName();
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
     // <9> 获得各种属性
@@ -104,6 +105,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 
     // Include Fragments before parsing
     // <10> 创建 XMLIncludeTransformer 对象，并替换 <include /> 标签相关的内容
+    //／／在解 SQL 语句 之前，先处理其中的 include 节点
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
     includeParser.applyIncludes(context.getNode());
 

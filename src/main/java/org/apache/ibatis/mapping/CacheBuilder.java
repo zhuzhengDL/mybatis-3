@@ -90,10 +90,16 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+    //／／如采工mplementation 字段和 decorators 集合为空，则为其设立默认佳， implementation 默认
+    //／／位是 PerpetualCache class, decorators 集合，默认只包含 LruCache.cla ss
     setDefaultImplementations();
+    //／／根据 implementation 指定的类型 通过反射获取参数为 String 类型的构造方法，并通过该构造方
+    //／／ 法创建 Cache 对象
     Cache cache = newBaseCacheInstance(implementation, id);
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
+    //／／检测 cache 对象 类型，如果是 PerpetualCache 类型，贝］为其添加 decorat ors 合中
+    //／／的装饰器 如采是自定义类型的 Cache 实现，则不添加 decorators 集合中的装饰~
     if (PerpetualCache.class.equals(cache.getClass())) {
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
@@ -101,12 +107,15 @@ public class CacheBuilder {
       }
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+      //／／如采不是 LoggingCache 的子类，则添加 LoggingCache 装饰器
       cache = new LoggingCache(cache);
     }
     return cache;
   }
 
   private void setDefaultImplementations() {
+    //／／如采工mplementation 字段和 decorators 集合为空，则为其设立默认佳， implementation 默认
+    //／／位是 PerpetualCache class, decorators 集合，默认只包含 LruCache.cla ss
     if (implementation == null) {
       implementation = PerpetualCache.class;
       if (decorators.isEmpty()) {
@@ -129,6 +138,7 @@ public class CacheBuilder {
         cache = new SerializedCache(cache);
       }
       cache = new LoggingCache(cache);
+      //这里使用了SynchronizedCache 主要是防止二级缓存的线程安全问题
       cache = new SynchronizedCache(cache);
       if (blocking) {
         cache = new BlockingCache(cache);

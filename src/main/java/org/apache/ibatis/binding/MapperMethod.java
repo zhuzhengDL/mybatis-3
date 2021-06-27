@@ -39,6 +39,8 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * Mapper Method 中封装了 Mapper 接口中对应方法的信息，以及对应 SQL 语句的信息。读者
+ * 可以将 MapperMethod 看作连接 Mapper 接口以及映射配置文件中定义的 SQL 语句的桥梁。
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss

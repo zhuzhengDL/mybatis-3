@@ -58,6 +58,7 @@ public interface StatementHandler {
 
   /**
    * 执行写操作
+   * ／／ 执行 update/insert/delete 语句
    * @param statement Statement 对象
    * @return 影响条数
    * @throws SQLException

@@ -47,7 +47,7 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     Object parameterObject = boundSql.getParameterObject();
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
-    // 如果是 Jdbc3KeyGenerator 类型   基本已经淘汰
+    // 如果是 Jdbc3KeyGenerator 类型
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
       // <1.1> 执行写操作
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);

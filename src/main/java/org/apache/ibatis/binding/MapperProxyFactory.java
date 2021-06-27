@@ -48,13 +48,16 @@ public class MapperProxyFactory<T> {
    * 非常眼熟的 JDK动态代理 代码，创建了实现 mapperInterface接口 的代理对象
    * 根据国际惯例，mapperProxy对应的类 肯定实现了 InvocationHandler接口，
    * 为 mapperInterface接口方法的调用 织入统一处理逻辑
+   *
    */
   protected T newInstance(MapperProxy<T> mapperProxy) {
+    //／／创建实现 mapperinterface 口的代理对象
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 
   public T newInstance(SqlSession sqlSession) {
     // 创建一个新的 MapperProxy对象
+    //创建 MapperProxy 对象，每次调用都会创建新的 MapperProxy 对象
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
   }

@@ -33,6 +33,9 @@ import org.apache.ibatis.session.Configuration;
  *
  * 另外，比较特殊的是，`<selectKey />` 解析后，也会对应一个 MappedStatement 对象
  *
+ * My Batis 使用 MappedStatement 表示映射配置文件中定义 SQL 节点， MappedStatement
+ * 包含了这些节点的很多属性，
+ *
  * @author Clinton Begin
  */
 public final class MappedStatement {
@@ -45,7 +48,7 @@ public final class MappedStatement {
    */
   private Configuration configuration;
   /**
-   * 编号
+   * 编号 节点中的id属性（包括命名空间前缀）
    */
   private String id;
   /**
@@ -65,7 +68,7 @@ public final class MappedStatement {
    */
   private ResultSetType resultSetType;
   /**
-   * SqlSource 对象
+   * SqlSource 对象  对应一条 SQL 语句
    */
   private SqlSource sqlSource;
   /**

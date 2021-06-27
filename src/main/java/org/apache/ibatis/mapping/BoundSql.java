@@ -36,10 +36,12 @@ import org.apache.ibatis.session.Configuration;
 public class BoundSql {
   /**
    * SQL 语句
+   * ／／该字段中记录了 SQL 句，该 SQL 语句中可能含有”？”占位符
    */
   private final String sql;
   /**
    * ParameterMapping 数组
+   * II SQL 中的参数属， 生集合， ParameterMapping 的集合
    */
   private final List<ParameterMapping> parameterMappings;
   /**
@@ -48,6 +50,7 @@ public class BoundSql {
   private final Object parameterObject;
   /**
    * 附加的参数集合
+   * //／／空HashMap集合，之后会复制 DynamicContext.bindings 集合中的内容
    */
   private final Map<String, Object> additionalParameters;
   /**

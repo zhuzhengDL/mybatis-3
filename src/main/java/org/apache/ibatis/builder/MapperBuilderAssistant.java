@@ -156,6 +156,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean blocking,
       Properties props) {
     // <1> 创建 Cache 对象
+    //／／创建 Cache 对象，这里使用了建造者模式， CacheBuilder 是建造者 角色 ，而 Cache 产品
     Cache cache = new CacheBuilder(currentNamespace)
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
@@ -166,6 +167,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .properties(props)
         .build();
     // <2> 添加到 configuration 的 caches 中
+    //／／将 Cache 对象添加到 Configuration.caches 集合 保存，其 会将 Cache id 作为 key,Cache对象本身作为 value
     configuration.addCache(cache);
     // <3> 赋值给 currentCache
     currentCache = cache;
@@ -203,6 +205,18 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .build();
   }
 
+  /**
+   * 得到 resultMapping 对象集合之后，会调用 ResultMapResolver resolve （） 方法 该方法会调用
+   *     //MapperBuilderAssistant.addResultMap （） 方法创建 ResultMap，并将 ResultMap 对象添加到
+   *     //Configuration.resultMap 集合中保存。
+   * @param id
+   * @param type
+   * @param extend
+   * @param discriminator
+   * @param resultMappings
+   * @param autoMapping
+   * @return
+   */
   public ResultMap addResultMap(
       String id,
       Class<?> type,
@@ -220,6 +234,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
         // <2.2.1> 获得 extend 对应的 ResultMap 对象。如果不存在，则抛出 IncompleteElementException 异常
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+      //／／获取需要被继承的 ResultMap 对象，也就是父 ResultMap 对象
       ResultMap resultMap = configuration.getResultMap(extend);
       // 获取 extend 的 ResultMap 对象的 ResultMapping 集合，并移除 resultMappings
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
@@ -233,13 +248,17 @@ public class MapperBuilderAssistant extends BaseBuilder {
           break;
         }
       }
+      //／／ 如采当前＜ resultMap 节点中 定义了 constructor ＞节点，则不需要使用父 ResultMap 中记录
+      //／／ 的相应＜ constructor> 节点，则将对应的 ResultMapping 对象删除
       if (declaresConstructor) {
         extendedResultMappings.removeIf(resultMapping -> resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR));
       }
       // 将 extendedResultMappings 添加到 resultMappings 中
+      //／／添加需要被继承下来 ResultMapping 对象集合
       resultMappings.addAll(extendedResultMappings);
     }
     // <3> 创建 ResultMap 对象
+    //／／创建 ResultMap 对象， 添加到 Configuration.resultMaps 集合 保存
     ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
         .discriminator(discriminator)
         .build();
@@ -473,16 +492,21 @@ public class MapperBuilderAssistant extends BaseBuilder {
       String foreignColumn,
       boolean lazy) {
     // <1> 解析对应的 Java Type 类和 TypeHandler 对象
+    //／／解析＜ resultType ＞节点指定 property 属性的类型
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
+    //／／获取 typeHandler 指定的 TypeHandler 对象，底层依赖 typeHandlerRegistry ，不再赘述
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
     List<ResultMapping> composites;
     if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
       composites = Collections.emptyList();
     } else {
       // <2> 解析组合字段名称成 ResultMapping 集合。涉及「关联的嵌套查询」
+      //／／解析 column 属性佳，当 column 属性是“{ propl=coll prop2=col2 ｝” 形式时， 会解析成 ResultMapping
+      //／／对象集合， column 的这种形式主要用于嵌套查询 参数传递 细介绍
       composites = parseCompositeColumnName(column);
     }
     // <3> 创建 ResultMapping 对象
+    //／／创建 ResultMapping.Builder 对象，创建 ResultMapping 对象 并设置其字段
     return new ResultMapping.Builder(configuration, property, column, javaTypeClass)
         .jdbcType(jdbcType)
         .nestedQueryId(applyCurrentNamespace(nestedSelect, true))// <3.1>

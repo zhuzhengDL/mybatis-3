@@ -119,6 +119,11 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     /**
      *  #{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler}
+     *  ／／解析参数的属性，并形成 Map 例如＃｛ _frc_item_0 , javaType=int, jdbcType=NUMERIC,
+     * II type andler=MyTypeHandler ｝这个占位符，它就会被解析成如下 Map:
+     *
+     * ／／｛ property ”－ frch_item一。 ，”javaType”-> ”int” , ” ] jdbcType ”->” NUMERIC ”,
+     * // ” typeHandler " - > ” MyTypeHandler”}
      * @param content 为 #{ }之间的内容
      * @return
      */

@@ -22,7 +22,8 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
-/**
+/** Parameter Mapping 中记录了“＃｛｝”占位符中的参数属性
+ * #{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler}
  * @author Clinton Begin
  */
 public class ParameterMapping {
