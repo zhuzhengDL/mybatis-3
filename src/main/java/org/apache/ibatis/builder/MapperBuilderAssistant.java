@@ -169,7 +169,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     // <2> 添加到 configuration 的 caches 中
     //／／将 Cache 对象添加到 Configuration.caches 集合 保存，其 会将 Cache id 作为 key,Cache对象本身作为 value
     configuration.addCache(cache);
-    // <3> 赋值给 currentCache
+    // <3> 赋值给 currentCache  记录下来 方便后面解析其他select标签的时候 设置二级缓存对象
     currentCache = cache;
     return cache;
   }
