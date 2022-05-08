@@ -202,7 +202,7 @@ public class Configuration {
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
 
   /**
-   * Cache 对象集合
+   * Cache 对象集合  二级缓存
    *
    * KEY：命名空间 namespace
    */

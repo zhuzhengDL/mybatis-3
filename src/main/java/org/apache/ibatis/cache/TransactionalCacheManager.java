@@ -21,6 +21,10 @@ import java.util.Map;
 import org.apache.ibatis.cache.decorators.TransactionalCache;
 
 /**
+ * TransactionalCacheManager 内部维护了 Cache 实例与 TransactionalCache 实例间的映射关系，该类
+ * 也仅负责维护两者的映射关系，真正做事的还是 TransactionalCache。TransactionalCache 是⼀种缓
+ * 存装饰器，可以为 Cache 实例增加事务功能。
+ *
  * @author Clinton Begin
  */
 public class TransactionalCacheManager {
@@ -31,6 +35,7 @@ public class TransactionalCacheManager {
   private final Map<Cache, TransactionalCache> transactionalCaches = new HashMap<>();
 
   public void clear(Cache cache) {
+    // 获取 TransactionalCache 对象，并调⽤该对象的 clear ⽅法，下同
     getTransactionalCache(cache).clear();
   }
 
@@ -59,6 +64,9 @@ public class TransactionalCacheManager {
   }
 
   private TransactionalCache getTransactionalCache(Cache cache) {
+    //// 从映射表中获取 TransactionalCache
+    // TransactionalCache 也是⼀种装饰类，为 Cache 增加事务功能
+    // 创建⼀个新的TransactionalCache，并将真正的Cache对象存进去
     return transactionalCaches.computeIfAbsent(cache, TransactionalCache::new);
   }
 

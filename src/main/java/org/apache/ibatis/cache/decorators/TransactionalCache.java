@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.cache.TransactionalCacheManager;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
@@ -53,13 +54,19 @@ public class TransactionalCache implements Cache {
   private boolean clearOnCommit;
   /**
    * 待提交的 KV 映射
+   *  // 在事务被提交前，所有从数据库中查询的结果将缓存在此集合中
    */
   private final Map<Object, Object> entriesToAddOnCommit;
   /**
    * 查找不到的 KEY 集合
+   * // 在事务被提交前，当缓存未命中时，CacheKey 将会被存储在此集合中
    */
   private final Set<Object> entriesMissedInCache;
 
+  /**
+   * @see TransactionalCacheManager#getTransactionalCache(org.apache.ibatis.cache.Cache)
+   * @param delegate
+   */
   public TransactionalCache(Cache delegate) {
     this.delegate = delegate;
     this.clearOnCommit = false;
@@ -77,13 +84,23 @@ public class TransactionalCache implements Cache {
     return delegate.getSize();
   }
 
+  /**
+   * 存储⼆级缓存对象的时候是放到了TransactionalCache.entriesToAddOnCommit这个map中，但是每
+   * 次查询的时候是直接从TransactionalCache.delegate中去查询的，所以这个⼆级缓存查询数据库后，设
+   * 置缓存值是没有⽴刻⽣效的，主要是因为直接存到 delegate 会导致脏数据问题
+   * @param key
+   *          The key
+   * @return
+   */
   @Override
   public Object getObject(Object key) {
     // issue #116
     // <1> 从 delegate 中获取 key 对应的 value
+    // 查询的时候是直接从delegate中去查询的，也就是从真正的缓存对象中查询
     Object object = delegate.getObject(key);
     if (object == null) {
       // <2> 如果不存在，则添加到 entriesMissedInCache 中
+      // 缓存未命中，则将 key 存⼊到 entriesMissedInCache 中
       entriesMissedInCache.add(key);
     }
     // issue #146
@@ -99,6 +116,7 @@ public class TransactionalCache implements Cache {
   @Override
   public void putObject(Object key, Object object) {
     // 暂存 KV 到 entriesToAddOnCommit 中
+    // 将键值对存⼊到 entriesToAddOnCommit 这个Map中中，⽽⾮真实的缓存对象delegate 中
     entriesToAddOnCommit.put(key, object);
   }
 
@@ -112,6 +130,7 @@ public class TransactionalCache implements Cache {
     // <1> 标记 clearOnCommit 为 true
     clearOnCommit = true;
     // <2> 清空 entriesToAddOnCommit
+    // 清空 entriesToAddOnCommit，但不清空 delegate 缓存
     entriesToAddOnCommit.clear();
   }
 
@@ -121,6 +140,8 @@ public class TransactionalCache implements Cache {
       delegate.clear();
     }
     // 将 entriesToAddOnCommit、entriesMissedInCache 刷入 delegate 中
+    // 只有session.commit()之后才会真正提交到缓存，考虑到线程安全问题，别的线程也会访问同一个namespace下的缓存
+    // 刷新未缓存的结果到 delegate 缓存中
     flushPendingEntries();
     // 重置
     reset();
